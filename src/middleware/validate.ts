@@ -12,17 +12,21 @@ type ValidationSchemas = {
 export const validate = ({ body, query, params }: ValidationSchemas): RequestHandler =>
   (req: Request, _res: Response, next: NextFunction) => {
     try {
+      const validated: Record<string, unknown> = {};
+
       if (body) {
-        req.body = body.parse(req.body);
+        validated.body = body.parse(req.body);
       }
 
       if (query) {
-        req.query = query.parse(req.query) as Request['query'];
+        validated.query = query.parse(req.query);
       }
 
       if (params) {
-        req.params = params.parse(req.params) as Request['params'];
+        validated.params = params.parse(req.params);
       }
+
+      (_res.locals as { validated?: Record<string, unknown> }).validated = validated;
 
       next();
     } catch (error) {

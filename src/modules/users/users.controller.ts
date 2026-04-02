@@ -8,11 +8,16 @@ export const listUsers = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 export const getUserById = asyncHandler(async (req: Request, res: Response) => {
-  const user = await usersService.getUserById(req.params.id as string);
+  const validated = res.locals as { validated?: { params?: { id: string } } };
+  const user = await usersService.getUserById(validated.validated?.params?.id ?? (req.params.id as string));
   res.json({ data: user });
 });
 
 export const updateUserRole = asyncHandler(async (req: Request, res: Response) => {
-  const user = await usersService.updateRole(req.params.id as string, req.body.role);
+  const validated = res.locals as { validated?: { params?: { id: string }; body?: { role: 'VIEWER' | 'ANALYST' | 'ADMIN' } } };
+  const user = await usersService.updateRole(
+    validated.validated?.params?.id ?? (req.params.id as string),
+    validated.validated?.body?.role ?? req.body.role
+  );
   res.json({ data: user });
 });

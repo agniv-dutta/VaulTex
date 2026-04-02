@@ -55,6 +55,10 @@ export const errorHandler = (
     }
   }
 
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(error);
+  }
+
   const statusCode = 500;
   res.status(statusCode).json({
     error: 'Internal Server Error',
