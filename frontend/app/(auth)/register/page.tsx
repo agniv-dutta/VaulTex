@@ -39,7 +39,7 @@ export default function RegisterPage() {
           className="mt-5 space-y-4"
           onSubmit={handleSubmit(async (values) => {
             const res = await registerMutation.mutateAsync(values);
-            if (res.token) router.push("/dashboard");
+            if (res.token) router.push("/");
           })}
         >
           <div>

@@ -3,5 +3,5 @@ import { redirect } from "next/navigation";
 
 export default function Home() {
   const token = cookies().get("finledger_token")?.value;
-  redirect(token ? "/dashboard" : "/login");
+  redirect(token ? "/records" : "/login");
 }
