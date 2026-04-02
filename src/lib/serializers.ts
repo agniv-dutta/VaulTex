@@ -1,10 +1,10 @@
-import type { FinancialRecord, User } from '@prisma/client';
+import type { DbFinancialRecord, DbUser } from '../types/domain';
 
 export interface ApiUser {
   id: string;
   name: string;
   email: string;
-  role: User['role'];
+  role: DbUser['role'];
   createdAt: string;
   updatedAt: string;
 }
@@ -13,7 +13,7 @@ export interface ApiFinancialRecord {
   id: string;
   userId: string;
   amount: number;
-  type: FinancialRecord['type'];
+  type: DbFinancialRecord['type'];
   category: string;
   date: string;
   notes: string | null;
@@ -22,7 +22,10 @@ export interface ApiFinancialRecord {
   updatedAt: string;
 }
 
-export const serializeUser = (user: User): ApiUser => ({
+const toNumber = (value: number | { toNumber(): number }): number =>
+  typeof value === 'number' ? value : value.toNumber();
+
+export const serializeUser = (user: DbUser): ApiUser => ({
   id: user.id,
   name: user.name,
   email: user.email,
@@ -31,10 +34,10 @@ export const serializeUser = (user: User): ApiUser => ({
   updatedAt: user.updatedAt.toISOString()
 });
 
-export const serializeFinancialRecord = (record: FinancialRecord): ApiFinancialRecord => ({
+export const serializeFinancialRecord = (record: DbFinancialRecord): ApiFinancialRecord => ({
   id: record.id,
   userId: record.userId,
-  amount: Number(record.amount),
+  amount: toNumber(record.amount),
   type: record.type,
   category: record.category,
   date: record.date.toISOString(),

@@ -13,16 +13,16 @@ export const listRecords = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getRecordById = asyncHandler(async (req: Request, res: Response) => {
-  const record = await recordsService.getRecordById(req.user!, req.params.id);
+  const record = await recordsService.getRecordById(req.user!, req.params.id as string);
   res.json({ data: record });
 });
 
 export const updateRecord = asyncHandler(async (req: Request, res: Response) => {
-  const record = await recordsService.updateRecord(req.params.id, req.body);
+  const record = await recordsService.updateRecord(req.params.id as string, req.body);
   res.json({ data: record });
 });
 
 export const deleteRecord = asyncHandler(async (req: Request, res: Response) => {
-  const record = await recordsService.deleteRecord(req.params.id);
+  const record = await recordsService.deleteRecord(req.params.id as string);
   res.json({ data: record });
 });

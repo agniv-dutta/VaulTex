@@ -4,7 +4,7 @@ import { AppError } from './errors';
 import type { AuthTokenPayload } from '../types/auth';
 
 export const signAccessToken = (payload: AuthTokenPayload): string =>
-  jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+  jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] });
 
 export const verifyAccessToken = (token: string): AuthTokenPayload => {
   try {

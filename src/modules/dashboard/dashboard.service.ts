@@ -1,4 +1,4 @@
-import type { Role } from '@prisma/client';
+import type { Role } from '../../types/domain';
 import { recordsService, type CategoryBreakdownItem, type DashboardSummary, type MonthlyBreakdownItem } from '../records/records.service';
 
 export class DashboardService {

@@ -1,4 +1,4 @@
-import type { Role } from '@prisma/client';
+import type { Role } from '../../types/domain';
 import { AppError } from '../../lib/errors';
 import { serializeUser, type ApiUser } from '../../lib/serializers';
 import { usersRepository } from './users.repository';

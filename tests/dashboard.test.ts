@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { Role } from '@prisma/client';
+import type { Role } from '../src/types/domain';
 import { app } from '../src/app';
 import { prisma } from '../src/config/prisma';
 import { hashPassword } from '../src/lib/password';

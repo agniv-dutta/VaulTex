@@ -1,4 +1,4 @@
-import type { Role, RecordType } from '@prisma/client';
+import type { Role, RecordType } from '../../types/domain';
 import { AppError } from '../../lib/errors';
 import { endOfUtcDay, startOfUtcDay } from '../../lib/date';
 import { serializeFinancialRecord, type ApiFinancialRecord } from '../../lib/serializers';

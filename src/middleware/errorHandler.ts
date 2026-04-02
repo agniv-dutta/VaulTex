@@ -1,7 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
 import { isAppError } from '../lib/errors';
+
+const isPrismaKnownRequestError = (value: unknown): value is { code: string } =>
+  typeof value === 'object' && value !== null && 'code' in value && typeof (value as { code?: unknown }).code === 'string';
 
 export const errorHandler = (
   error: unknown,
@@ -33,10 +35,8 @@ export const errorHandler = (
     return;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    const prismaError = error as Prisma.PrismaClientKnownRequestError;
-
-    if (prismaError.code === 'P2002') {
+  if (isPrismaKnownRequestError(error)) {
+    if (error.code === 'P2002') {
       res.status(409).json({
         error: 'Conflict',
         message: 'A resource with the same unique value already exists',
@@ -45,7 +45,7 @@ export const errorHandler = (
       return;
     }
 
-    if (prismaError.code === 'P2025') {
+    if (error.code === 'P2025') {
       res.status(404).json({
         error: 'Not Found',
         message: 'Resource not found',

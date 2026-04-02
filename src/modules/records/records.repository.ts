@@ -1,4 +1,4 @@
-import type { FinancialRecord, RecordType, Prisma } from '@prisma/client';
+import type { DbFinancialRecord, RecordType } from '../../types/domain';
 import { prisma } from '../../config/prisma';
 
 export interface RecordFilter {
@@ -10,12 +10,12 @@ export interface RecordFilter {
 }
 
 export interface PaginatedRecordsResult {
-  records: FinancialRecord[];
+  records: DbFinancialRecord[];
   total: number;
 }
 
 export class RecordsRepository {
-  private buildWhere(filter: RecordFilter = {}): Prisma.FinancialRecordWhereInput {
+  private buildWhere(filter: RecordFilter = {}) {
     return {
       isDeleted: false,
       ...(filter.userId ? { userId: filter.userId } : {}),
@@ -39,7 +39,7 @@ export class RecordsRepository {
     category: string;
     date: Date;
     notes?: string | null;
-  }): Promise<FinancialRecord> {
+  }): Promise<DbFinancialRecord> {
     return prisma.financialRecord.create({
       data: {
         userId: data.userId,
@@ -52,7 +52,7 @@ export class RecordsRepository {
     });
   }
 
-  async findById(id: string): Promise<FinancialRecord | null> {
+  async findById(id: string): Promise<DbFinancialRecord | null> {
     return prisma.financialRecord.findFirst({
       where: {
         id,
@@ -61,7 +61,7 @@ export class RecordsRepository {
     });
   }
 
-  async findByIdIncludingDeleted(id: string): Promise<FinancialRecord | null> {
+  async findByIdIncludingDeleted(id: string): Promise<DbFinancialRecord | null> {
     return prisma.financialRecord.findUnique({ where: { id } });
   }
 
@@ -88,15 +88,15 @@ export class RecordsRepository {
     date: Date;
     notes: string | null;
     isDeleted: boolean;
-  }>): Promise<FinancialRecord> {
+  }>): Promise<DbFinancialRecord> {
     return prisma.financialRecord.update({ where: { id }, data });
   }
 
-  async softDelete(id: string): Promise<FinancialRecord> {
+  async softDelete(id: string): Promise<DbFinancialRecord> {
     return prisma.financialRecord.update({ where: { id }, data: { isDeleted: true } });
   }
 
-  async fetchAllForAnalytics(filter: RecordFilter = {}): Promise<FinancialRecord[]> {
+  async fetchAllForAnalytics(filter: RecordFilter = {}): Promise<DbFinancialRecord[]> {
     return prisma.financialRecord.findMany({
       where: this.buildWhere(filter),
       orderBy: { date: 'desc' }
