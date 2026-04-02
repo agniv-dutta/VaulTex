@@ -1,87 +1,211 @@
 # VaulTex
 
-VaulTex is a finance data processing and access-control API built with Node.js, Express, TypeScript, Prisma, and SQLite.
+VaulTex is a production-ready REST API backend for finance data processing with role-based access control.
 
-## Assumptions
+It is built with Node.js, Express, TypeScript, Prisma, and SQLite, with a layered architecture:
 
-- SQLite is used for simplicity and local portability.
-- JWT access tokens are stateless; there is no refresh-token flow yet.
-- Soft delete is used for financial records so deleted data can still be audited later.
-- Passwords are hashed with bcryptjs before storage.
-- The API returns JSON only.
+routes -> controllers -> services -> repositories -> database
 
-## Tech Stack
+## 1) What This Service Does
 
-- Node.js + TypeScript
-- Express.js
-- Prisma ORM
-- SQLite
-- JWT via jsonwebtoken
-- Validation via Zod
-- Testing via Vitest and Supertest
+- Manages users and role assignments (VIEWER, ANALYST, ADMIN).
+- Stores financial records (income and expenses) with soft delete.
+- Provides analytics dashboards (summary, category totals, monthly trends).
+- Uses JWT auth and server-side RBAC checks on protected endpoints.
 
-## Setup
+## 2) Architecture and Design Choices
 
-1. Install dependencies.
+### Layering
 
-```bash
+- Routes: endpoint definitions and middleware chains.
+- Controllers: thin request/response handlers.
+- Services: business logic and authorization-aware behavior.
+- Repositories: Prisma data-access implementation.
+- Database: SQLite via Prisma schema and migrations.
+
+### Why SQLite
+
+SQLite keeps local setup friction low and removes external database dependencies.
+It is great for local development, demos, and low-throughput environments.
+
+### Why JWT Access Tokens
+
+JWT allows stateless API authentication and simple horizontal scaling.
+This implementation intentionally avoids refresh tokens for simplicity.
+
+### Why Soft Delete
+
+Records are never physically removed by default delete operations.
+Instead, isDeleted=true is used for auditability and safer data handling.
+
+## 3) Tech Stack
+
+- Runtime: Node.js + TypeScript (strict mode)
+- Framework: Express.js
+- ORM: Prisma
+- Database: SQLite
+- Auth: jsonwebtoken
+- Validation: Zod
+- Security and Ops: helmet, cors, express-rate-limit, morgan
+- Testing: Vitest + Supertest
+
+## 4) Project Structure
+
+src/
+  config/
+  middleware/
+  modules/
+    auth/
+    users/
+    records/
+    dashboard/
+  lib/
+  types/
+  schemas/
+  app.ts
+  server.ts
+prisma/
+  schema.prisma
+  migrations/
+  seed.ts
+tests/
+
+## 5) Prerequisites
+
+- Node.js 20+
+- npm 10+
+
+## 6) Quick Start Commands
+
+### Windows PowerShell
+
+1. Install dependencies
+
+```powershell
 npm install
 ```
 
-2. Create your local environment file.
+2. Create env file
 
-```bash
-copy .env.example .env
+```powershell
+Copy-Item .env.example .env
 ```
 
-3. Apply the Prisma schema and generate the client.
+3. Generate Prisma client
 
-```bash
-npx prisma migrate deploy
+```powershell
 npm run prisma:generate
 ```
 
-For a fresh development database, you can also use:
+4. Apply migrations (development DB)
 
-```bash
-npx prisma migrate dev --name init
+```powershell
+$env:DATABASE_URL='file:./dev.db'; npx prisma migrate deploy
 ```
 
-4. Seed sample data.
+5. Seed data
 
-```bash
-npm run db:seed
+```powershell
+$env:DATABASE_URL='file:./dev.db'; npm run db:seed
 ```
 
-5. Start the API.
+6. Start dev server
 
-```bash
-npm run dev
+```powershell
+$env:DATABASE_URL='file:./dev.db'; $env:JWT_SECRET='replace-with-a-long-random-secret-for-local-dev-12345'; npm run dev
 ```
 
-## Environment Variables
+7. Run tests
 
-- `NODE_ENV` - `development`, `test`, or `production`
-- `PORT` - HTTP port for the API
-- `DATABASE_URL` - SQLite connection string
-- `JWT_SECRET` - signing secret for access tokens
-- `JWT_EXPIRES_IN` - JWT expiry, for example `1h`
-- `RATE_LIMIT_WINDOW_MS` - rate-limit window in milliseconds
-- `RATE_LIMIT_MAX` - max requests per window per IP
+```powershell
+npm test
+```
 
-## Role Permissions
+8. Build for production
 
-| Role | Permissions |
-| --- | --- |
-| VIEWER | Read own records, read own dashboard summary |
-| ANALYST | VIEWER permissions plus read all records and system-wide dashboard data |
-| ADMIN | Full access, including create/update/delete records and manage users |
+```powershell
+npm run build
+```
 
-## API Endpoints
+## 7) Environment Variables
+
+Defined in .env.example:
+
+- NODE_ENV: development | test | production
+- PORT: HTTP server port
+- DATABASE_URL: SQLite URL, for example file:./dev.db
+- JWT_SECRET: signing secret (must be long and random)
+- JWT_EXPIRES_IN: token expiry, for example 1h
+- RATE_LIMIT_WINDOW_MS: throttling window in ms
+- RATE_LIMIT_MAX: max requests per IP per window
+
+## 8) Data Model
+
+### User
+
+- id: uuid
+- name: string
+- email: string, unique
+- password: bcrypt hash
+- role: VIEWER | ANALYST | ADMIN
+- createdAt, updatedAt
+
+### FinancialRecord
+
+- id: uuid
+- userId: foreign key to User
+- amount: positive decimal value
+- type: INCOME | EXPENSE
+- category: string
+- date: ISO date
+- notes: optional string
+- isDeleted: boolean soft-delete marker
+- createdAt, updatedAt
+
+## 9) Authentication and RBAC
+
+### JWT
+
+- Register and login return an access token.
+- Payload includes: userId, email, role.
+- Protected routes require Authorization: Bearer <token>.
+
+### Role Permissions
+
+| Endpoint Group | VIEWER | ANALYST | ADMIN |
+| --- | --- | --- | --- |
+| GET /api/records | Own records only | All records | All records |
+| GET /api/records/:id | Own records only | Any record | Any record |
+| POST/PATCH/DELETE /api/records | No | No | Yes |
+| GET /api/dashboard/* | Own data | Global data | Global data |
+| /api/users/* | No | No | Yes |
+
+RBAC is enforced on the server using middleware. The server never trusts client-side role claims outside the signed token.
+
+## 10) API Reference
+
+Base URL for local dev:
+
+http://localhost:3000
+
+### Health
+
+GET /health
+
+Response:
+
+```json
+{
+  "status": "ok",
+  "service": "VaulTex"
+}
+```
 
 ### Auth
 
-`POST /api/auth/register`
+#### POST /api/auth/register
+
+Creates a new user (default role: VIEWER) and returns JWT.
 
 Request:
 
@@ -93,7 +217,7 @@ Request:
 }
 ```
 
-Response:
+Response 201:
 
 ```json
 {
@@ -109,7 +233,9 @@ Response:
 }
 ```
 
-`POST /api/auth/login`
+#### POST /api/auth/login
+
+Validates credentials and returns JWT.
 
 Request:
 
@@ -120,16 +246,38 @@ Request:
 }
 ```
 
-Response: same shape as register.
+Response 200: same shape as register.
 
-### Users  
-ADMIN only.
+### Users (ADMIN only)
 
-`GET /api/users`
+#### GET /api/users
 
-`GET /api/users/:id`
+Lists all users.
 
-`PATCH /api/users/:id/role`
+Response 200:
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Admin User",
+      "email": "admin@vaultex.local",
+      "role": "ADMIN",
+      "createdAt": "2026-04-02T12:00:00.000Z",
+      "updatedAt": "2026-04-02T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### GET /api/users/:id
+
+Returns one user by id.
+
+#### PATCH /api/users/:id/role
+
+Changes a user role.
 
 Request:
 
@@ -139,10 +287,11 @@ Request:
 }
 ```
 
-### Records
+### Financial Records
 
-`POST /api/records`  
-ADMIN only.
+#### POST /api/records (ADMIN only)
+
+Creates a financial record for any user.
 
 Request:
 
@@ -157,30 +306,83 @@ Request:
 }
 ```
 
-`GET /api/records`
+Response 201:
 
-Query params:
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "amount": 2500,
+    "type": "INCOME",
+    "category": "Salary",
+    "date": "2024-01-01T00:00:00.000Z",
+    "notes": "January payroll",
+    "isDeleted": false,
+    "createdAt": "2026-04-02T12:00:00.000Z",
+    "updatedAt": "2026-04-02T12:00:00.000Z"
+  }
+}
+```
 
-- `type=INCOME|EXPENSE`
-- `category=Salary`
-- `startDate=2024-01-01`
-- `endDate=2024-12-31`
-- `page=1`
-- `limit=20`
+#### GET /api/records
 
-`GET /api/records/:id`
+- VIEWER: only own records
+- ANALYST and ADMIN: all records
 
-`PATCH /api/records/:id`  
-ADMIN only.
+Supported query params:
 
-`DELETE /api/records/:id`  
-ADMIN only, soft delete only.
+- type=INCOME|EXPENSE
+- category=Salary
+- startDate=2024-01-01
+- endDate=2024-12-31
+- page=1
+- limit=20
 
-### Dashboard
+Response 200:
 
-`GET /api/dashboard/summary`
+```json
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 0,
+    "totalPages": 1
+  }
+}
+```
 
-Response:
+#### GET /api/records/:id
+
+Gets a single record if caller is allowed to view it.
+
+#### PATCH /api/records/:id (ADMIN only)
+
+Updates one record. Partial updates are allowed.
+
+Example request:
+
+```json
+{
+  "amount": 2750,
+  "notes": "Adjusted amount"
+}
+```
+
+#### DELETE /api/records/:id (ADMIN only)
+
+Soft deletes the record by setting isDeleted=true.
+
+### Dashboard / Analytics
+
+#### GET /api/dashboard/summary
+
+Returns totalIncome, totalExpenses, and netBalance.
+
+VIEWER gets own data only. ANALYST and ADMIN get system-wide data.
+
+Response 200:
 
 ```json
 {
@@ -192,13 +394,58 @@ Response:
 }
 ```
 
-`GET /api/dashboard/by-category`
+#### GET /api/dashboard/by-category
 
-`GET /api/dashboard/monthly`
+Returns category-level aggregation.
 
-## Error Handling
+Response example:
 
-The API returns a consistent error shape:
+```json
+{
+  "data": [
+    {
+      "category": "Salary",
+      "income": 5000,
+      "expense": 0,
+      "total": 5000
+    }
+  ]
+}
+```
+
+#### GET /api/dashboard/monthly
+
+Returns month buckets for the last 12 months.
+
+Response example:
+
+```json
+{
+  "data": [
+    {
+      "month": "2025-05",
+      "income": 1200,
+      "expense": 300,
+      "total": 1500
+    }
+  ]
+}
+```
+
+## 11) Validation Rules
+
+- Email must be valid format.
+- Password must be present; register requires minimum length.
+- amount must be positive.
+- type must be INCOME or EXPENSE.
+- date must be parseable ISO date string.
+- UUID parameters must be valid UUIDs.
+
+Validation failures return HTTP 400 with structured details.
+
+## 12) Error Contract
+
+General error format:
 
 ```json
 {
@@ -211,21 +458,55 @@ The API returns a consistent error shape:
 
 Common status codes:
 
-- `400` validation failure
-- `401` missing or invalid token
-- `403` insufficient role
-- `404` resource not found
-- `409` duplicate unique value
-- `500` unexpected server error
+- 400: validation failure
+- 401: missing/invalid token
+- 403: insufficient role
+- 404: resource not found
+- 409: unique constraint conflict
+- 500: unexpected server error (no stack trace leaked in production)
 
-## Tradeoffs
+## 13) Testing
 
-- SQLite keeps the system easy to run locally, but it is not a substitute for a higher-throughput production database.
-- JWT access tokens are stateless and simple, but there is no refresh-token or revocation model yet.
-- Soft delete improves auditability, but it adds an extra predicate to every record query.
+- Integration tests run with Vitest + Supertest.
+- Test database is initialized via migrations in tests/setup.ts.
+- Current suite covers auth, RBAC on records, dashboard summary, and admin CRUD flows.
 
-## Notes
+Run:
 
-- Use `Authorization: Bearer <token>` on protected routes.
-- Seed users are created with the password `Password123!`.
-- A health check is available at `GET /health`.
+```bash
+npm test
+```
+
+## 14) Seeded Demo Accounts
+
+After seeding development DB:
+
+- admin@vaultex.local
+- analyst@vaultex.local
+- viewer@vaultex.local
+
+Password for all seeded users:
+
+Password123!
+
+## 15) Production Notes
+
+- Rotate JWT_SECRET and keep it in secure secret storage.
+- Replace SQLite with a managed database for high-concurrency production workloads.
+- Add refresh token flow and token revocation if required by your threat model.
+- Add request ID tracing and structured logs for observability.
+
+## 16) Tradeoffs and Future Enhancements
+
+Current tradeoffs:
+
+- SQLite for simple setup over high write concurrency.
+- Stateless JWT without refresh token complexity.
+- Soft-delete for auditability over hard-delete simplicity.
+
+Suggested next enhancements:
+
+- OpenAPI/Swagger docs generation
+- Refresh token and logout flow
+- Export endpoints (CSV/JSON) for analytics
+- Background jobs for report generation
