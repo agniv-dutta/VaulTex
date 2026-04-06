@@ -28,6 +28,17 @@ function setTokenCookie(token: string | null) {
   )}; Path=/; SameSite=Lax; Secure=`;
 }
 
+function syncAuthStorage(input: { token: string; user: User } | null) {
+  if (typeof window === "undefined") return;
+  if (!input) {
+    localStorage.removeItem("vaultex_token");
+    localStorage.removeItem("vaultex_user");
+    return;
+  }
+  localStorage.setItem("vaultex_token", input.token);
+  localStorage.setItem("vaultex_user", JSON.stringify(input.user));
+}
+
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
     (set, get) => ({
@@ -37,10 +48,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       isHydrated: false,
       setAuth: ({ token, user }) => {
         setTokenCookie(token);
+        syncAuthStorage({ token, user });
         set({ token, user, role: user.role });
       },
       clearAuth: () => {
         setTokenCookie(null);
+        syncAuthStorage(null);
         set({ token: null, user: null, role: null });
       },
       markHydrated: () => {

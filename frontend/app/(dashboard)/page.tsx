@@ -16,12 +16,24 @@ export default function DashboardPage() {
   const byCategory = useDashboardByCategory();
   const monthly = useDashboardMonthly();
 
+  const isLoading = summary.isLoading || byCategory.isLoading || monthly.isLoading;
+  const hasMonthly = (monthly.data?.length ?? 0) > 0;
+  const hasCategories = (byCategory.data?.length ?? 0) > 0;
+
   const totalIncome = summary.data?.totalIncome ?? 0;
   const totalExpenses = summary.data?.totalExpenses ?? 0;
   const net = summary.data?.netBalance ?? 0;
 
   return (
     <div className="space-y-4">
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Card><div className="h-16 animate-pulse rounded-card bg-[#1A1A2A]" /></Card>
+          <Card><div className="h-16 animate-pulse rounded-card bg-[#1A1A2A]" /></Card>
+          <Card><div className="h-16 animate-pulse rounded-card bg-[#1A1A2A]" /></Card>
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
           <div className="font-display text-[14px] tracking-[0.15em] uppercase text-[#5A5A7A]">
@@ -58,7 +70,11 @@ export default function DashboardPage() {
             <div className="text-[12px] text-[#5A5A7A]">MONTHLY</div>
           </div>
           <div className="mt-3">
-            <IncomeExpenseBar data={monthly.data ?? []} />
+            {hasMonthly ? (
+              <IncomeExpenseBar data={monthly.data ?? []} />
+            ) : (
+              <div className="text-[13px] text-[#5A5A7A]">No monthly data found</div>
+            )}
           </div>
         </Card>
         <Card>
@@ -69,7 +85,11 @@ export default function DashboardPage() {
             <div className="text-[12px] text-[#5A5A7A]">TOP</div>
           </div>
           <div className="mt-3">
-            <CategoryPie data={(byCategory.data ?? []).slice(0, 10)} />
+            {hasCategories ? (
+              <CategoryPie data={(byCategory.data ?? []).slice(0, 10)} />
+            ) : (
+              <div className="text-[13px] text-[#5A5A7A]">No category data found</div>
+            )}
           </div>
         </Card>
       </div>
@@ -82,7 +102,11 @@ export default function DashboardPage() {
           <div className="text-[12px] text-[#5A5A7A]">TOTAL</div>
         </div>
         <div className="mt-3">
-          <MonthlyLine data={monthly.data ?? []} />
+          {hasMonthly ? (
+            <MonthlyLine data={monthly.data ?? []} />
+          ) : (
+            <div className="text-[13px] text-[#5A5A7A]">No trend data found</div>
+          )}
         </div>
       </Card>
     </div>

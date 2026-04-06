@@ -25,7 +25,7 @@ export function middleware(req: NextRequest) {
 
   if (token && isPublic) {
     const url = req.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

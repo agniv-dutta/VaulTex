@@ -38,7 +38,11 @@ export default function LoginPage() {
           className="mt-5 space-y-4"
           onSubmit={handleSubmit(async (values) => {
             const res = await login.mutateAsync(values);
-            if (res.token) router.push("/");
+            if (res.token) {
+              localStorage.setItem("vaultex_token", res.token);
+              localStorage.setItem("vaultex_user", JSON.stringify(res.user));
+              router.push("/dashboard");
+            }
           })}
         >
           <div>

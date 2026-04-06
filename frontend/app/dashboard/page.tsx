@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function DashboardAliasPage() {
-  redirect("/");
-}
+export { default } from "../(dashboard)/page";

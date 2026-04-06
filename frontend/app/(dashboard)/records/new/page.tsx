@@ -7,15 +7,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { useCreateRecord } from "@/hooks/useRecords";
 import { useAuthStore } from "@/store/authStore";
 import { useToastStore } from "@/store/toastStore";
 import type { RecordType } from "@/types";
 
+const CATEGORY_OPTIONS = [
+  "Salary",
+  "Freelance",
+  "Bonus",
+  "Investment",
+  "Rent",
+  "Groceries",
+  "Utilities",
+  "Transport",
+  "Healthcare",
+  "Entertainment",
+  "Shopping",
+  "Insurance",
+  "Education",
+  "Travel",
+  "Other",
+] as const;
+
 const schema = z.object({
   amount: z.coerce.number().positive(),
   type: z.enum(["INCOME", "EXPENSE"]),
-  category: z.string().min(1).max(100),
+  category: z.string().min(1, "Category is required").max(100),
   date: z.string().min(1),
   notes: z.string().max(1000).optional(),
 });
@@ -39,7 +58,9 @@ export default function NewRecordPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       type: "EXPENSE",
+      category: "",
       date: new Date().toISOString().slice(0, 10),
+      notes: "",
     },
   });
 
@@ -130,7 +151,14 @@ export default function NewRecordPage() {
             <div className="text-[12px] uppercase tracking-[0.12em] text-[#5A5A7A]">
               CATEGORY
             </div>
-            <Input placeholder="Groceries" {...register("category")} />
+            <Select {...register("category")}>
+              <option value="">SELECT CATEGORY</option>
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
             {errors.category ? (
               <div className="mt-1 text-[12px] text-danger">
                 {errors.category.message}
@@ -152,7 +180,12 @@ export default function NewRecordPage() {
             <div className="text-[12px] uppercase tracking-[0.12em] text-[#5A5A7A]">
               NOTES
             </div>
-            <Input placeholder="Optional..." {...register("notes")} />
+            <textarea
+              placeholder="Optional..."
+              rows={3}
+              {...register("notes")}
+              className="w-full rounded-card bg-surface px-3 py-2 text-[13px] text-[#E8E8E0] placeholder:text-[#5A5A7A] border-2 border-border outline-none focus:border-mint focus:shadow-glow-mint"
+            />
             {errors.notes ? (
               <div className="mt-1 text-[12px] text-danger">{errors.notes.message}</div>
             ) : null}

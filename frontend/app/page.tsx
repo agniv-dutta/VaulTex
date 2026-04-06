@@ -3,5 +3,5 @@ import { redirect } from "next/navigation";
 
 export default function Home() {
   const token = cookies().get("vaultex_token")?.value;
-  redirect(token ? "/records" : "/login");
+  redirect(token ? "/dashboard" : "/login");
 }

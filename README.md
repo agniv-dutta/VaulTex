@@ -1,196 +1,254 @@
-# VaulTex
+<div align="center">
 
-VaulTex is a production-ready REST API backend for finance data processing with role-based access control.
+<h1>VaulTex</h1>
 
-It is built with Node.js, Express, TypeScript, Prisma, and SQLite, with a layered architecture:
+<p>
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img alt="Express" src="https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express&logoColor=white" />
+  <img alt="Prisma" src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img alt="SQLite" src="https://img.shields.io/badge/SQLite-DB-003B57?style=for-the-badge&logo=sqlite&logoColor=white" />
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
+  <img alt="React Query" src="https://img.shields.io/badge/React_Query-Data%20Fetching-FF4154?style=for-the-badge&logo=tanstack&logoColor=white" />
+  <img alt="Zustand" src="https://img.shields.io/badge/Zustand-State-FFB347?style=for-the-badge" />
+  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-Testing-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" />
+</p>
 
-routes -> controllers -> services -> repositories -> database
+</div>
 
-## 1) What This Service Does
+VaulTex is a full-stack personal finance platform with a TypeScript/Express/Prisma backend and a Next.js dashboard frontend. It includes JWT authentication, server-side role-based access control, record management, analytics endpoints, seeded demo data, and a polished client UI for login, records, and dashboard workflows.
 
-- Manages users and role assignments (VIEWER, ANALYST, ADMIN).
-- Stores financial records (income and expenses) with soft delete.
-- Provides analytics dashboards (summary, category totals, monthly trends).
-- Uses JWT auth and server-side RBAC checks on protected endpoints.
+## Overview
 
-## 2) Architecture and Design Choices
+The project is split into two apps:
 
-### Layering
+- Backend API on `http://localhost:3000`
+- Frontend app on `http://localhost:3001`
 
-- Routes: endpoint definitions and middleware chains.
-- Controllers: thin request/response handlers.
-- Services: business logic and authorization-aware behavior.
-- Repositories: Prisma data-access implementation.
-- Database: SQLite via Prisma schema and migrations.
+The backend exposes authenticated finance endpoints and the frontend consumes them through Axios, React Query, and Zustand.
 
-### Why SQLite
+## Stack
 
-SQLite keeps local setup friction low and removes external database dependencies.
-It is great for local development, demos, and low-throughput environments.
+- Backend: Node.js, TypeScript, Express 5, Prisma, SQLite, JWT, Zod, bcryptjs
+- Frontend: Next.js 14, React 18, React Query, Zustand, React Hook Form, Zod, Recharts
+- Tooling: Vitest, Supertest, tsx, ts-node, ESLint, Prisma migrations
 
-### Why JWT Access Tokens
+## Architecture
 
-JWT allows stateless API authentication and simple horizontal scaling.
-This implementation intentionally avoids refresh tokens for simplicity.
+The backend uses a layered flow:
 
-### Why Soft Delete
+routes -> middleware -> controllers -> services -> repositories -> database
 
-Records are never physically removed by default delete operations.
-Instead, isDeleted=true is used for auditability and safer data handling.
+That separation keeps validation, authorization, business logic, and persistence isolated.
 
-## 3) Tech Stack
+## Features
 
-- Runtime: Node.js + TypeScript (strict mode)
-- Framework: Express.js
-- ORM: Prisma
-- Database: SQLite
-- Auth: jsonwebtoken
-- Validation: Zod
-- Security and Ops: helmet, cors, express-rate-limit, morgan
-- Testing: Vitest + Supertest
+- Email/password authentication with JWT access tokens
+- Role-based access control for `VIEWER`, `ANALYST`, and `ADMIN`
+- User administration endpoints for admins
+- Financial records with filtering, pagination, updates, and soft delete
+- Dashboard analytics by summary, category, and month
+- Seeded demo data for immediate local testing
+- Frontend route protection and client-side auth persistence
 
-## 4) Project Structure
+## Demo Accounts
 
+The seed script creates these users:
+
+- Admin: `admin@vaultex.dev` / `Admin@123`
+- Analyst: `analyst@vaultex.dev` / `Analyst@123`
+- Viewer: `viewer@vaultex.dev` / `Viewer@123`
+
+The seed also inserts 40 financial records spread across the last 12 months.
+
+## Repository Layout
+
+```text
 src/
   config/
+  lib/
   middleware/
   modules/
     auth/
-    users/
-    records/
     dashboard/
-  lib/
-  types/
+    records/
+    users/
   schemas/
+  types/
   app.ts
   server.ts
 prisma/
   schema.prisma
   migrations/
   seed.ts
+frontend/
+  app/
+  components/
+  hooks/
+  lib/
+  store/
+  types/
 tests/
+postman/
+```
 
-## 5) Prerequisites
+## Prerequisites
 
-- Node.js 20+
-- npm 10+
+- Node.js 20 or newer
+- npm 10 or newer
 
-## 6) Quick Start Commands
+## Setup
 
-### Windows PowerShell
-
-1. Install dependencies
+### 1. Install dependencies
 
 ```powershell
 npm install
+cd frontend
+npm install
+cd ..
 ```
 
-2. Create env file
+### 2. Configure environment files
+
+Copy the backend example file if needed:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-3. Generate Prisma client
+For the frontend, ensure `frontend/.env.local` contains:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+### 3. Generate and migrate Prisma
 
 ```powershell
 npm run prisma:generate
+npm run db:migrate
 ```
 
-4. Apply migrations (development DB)
+### 4. Seed demo data
 
 ```powershell
-$env:DATABASE_URL='file:./dev.db'; npx prisma migrate deploy
+npm run seed
 ```
 
-5. Seed data
+### 5. Start both apps
+
+Backend:
 
 ```powershell
-$env:DATABASE_URL='file:./dev.db'; npm run db:seed
+npm run dev
 ```
 
-6. Start dev server
+Frontend:
 
 ```powershell
-$env:DATABASE_URL='file:./dev.db'; $env:JWT_SECRET='replace-with-a-long-random-secret-for-local-dev-12345'; npm run dev
+cd frontend
+npm run dev
 ```
 
-7. Run tests
+### 6. Run tests
 
 ```powershell
 npm test
 ```
 
-8. Build for production
+### 7. Build for production
 
 ```powershell
 npm run build
+cd frontend
+npm run build
 ```
 
-## 7) Environment Variables
+## Environment Variables
 
-Defined in .env.example:
+Backend `.env` values:
 
-- NODE_ENV: development | test | production
-- PORT: HTTP server port
-- DATABASE_URL: SQLite URL, for example file:./dev.db
-- JWT_SECRET: signing secret (must be long and random)
-- JWT_EXPIRES_IN: token expiry, for example 1h
-- RATE_LIMIT_WINDOW_MS: throttling window in ms
-- RATE_LIMIT_MAX: max requests per IP per window
+- `NODE_ENV` - `development`, `test`, or `production`
+- `PORT` - backend HTTP port, default `3000`
+- `DATABASE_URL` - Prisma SQLite URL, for example `file:./dev.db`
+- `JWT_SECRET` - JWT signing secret
+- `JWT_EXPIRES_IN` - token lifetime, for example `1h`
+- `RATE_LIMIT_WINDOW_MS` - throttle window in milliseconds
+- `RATE_LIMIT_MAX` - request limit per window
 
-## 8) Data Model
+Frontend `.env.local` values:
 
-### User
+- `NEXT_PUBLIC_API_URL` - backend base URL, for example `http://localhost:3000`
 
-- id: uuid
-- name: string
-- email: string, unique
-- password: bcrypt hash
-- role: VIEWER | ANALYST | ADMIN
-- createdAt, updatedAt
+## Authentication
 
-### FinancialRecord
+Successful login and registration return this shape:
 
-- id: uuid
-- userId: foreign key to User
-- amount: positive decimal value
-- type: INCOME | EXPENSE
-- category: string
-- date: ISO date
-- notes: optional string
-- isDeleted: boolean soft-delete marker
-- createdAt, updatedAt
+```json
+{
+  "token": "jwt-token",
+  "user": {
+    "id": "uuid",
+    "name": "Admin User",
+    "email": "admin@vaultex.dev",
+    "role": "ADMIN",
+    "createdAt": "2026-04-06T00:00:00.000Z",
+    "updatedAt": "2026-04-06T00:00:00.000Z"
+  }
+}
+```
 
-## 9) Authentication and RBAC
+Protected requests must send:
 
-### JWT
+```http
+Authorization: Bearer <token>
+```
 
-- Register and login return an access token.
-- Payload includes: userId, email, role.
-- Protected routes require Authorization: Bearer <token>.
-
-### Role Permissions
+## Role Model
 
 | Endpoint Group | VIEWER | ANALYST | ADMIN |
 | --- | --- | --- | --- |
-| GET /api/records | Own records only | All records | All records |
-| GET /api/records/:id | Own records only | Any record | Any record |
-| POST/PATCH/DELETE /api/records | No | No | Yes |
-| GET /api/dashboard/* | Own data | Global data | Global data |
-| /api/users/* | No | No | Yes |
+| `GET /api/records` | Own records | All records | All records |
+| `GET /api/records/:id` | Own record | Any record | Any record |
+| `POST /api/records` | No | No | Yes |
+| `PATCH /api/records/:id` | No | No | Yes |
+| `DELETE /api/records/:id` | No | No | Yes |
+| `GET /api/dashboard/*` | Own data | Global data | Global data |
+| `GET /api/users/*` | No | No | Yes |
 
-RBAC is enforced on the server using middleware. The server never trusts client-side role claims outside the signed token.
+## Frontend Routes
 
-## 10) API Reference
+- `/` - redirects to `/dashboard` when authenticated, otherwise `/login`
+- `/login` - sign in page
+- `/register` - sign up page
+- `/dashboard` - main analytics view
+- `/records` - records table, filters, pagination, delete controls for admins
+- `/records/new` - admin-only create record form
+- `/users` - admin-only user management view
 
-Base URL for local dev:
+## API Reference
 
+### Endpoint Index
+
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /health` |
+| Auth | `POST /api/auth/register`, `POST /api/auth/login` |
+| Users | `GET /api/users`, `GET /api/users/:id`, `PATCH /api/users/:id/role` |
+| Records | `POST /api/records`, `GET /api/records`, `GET /api/records/:id`, `PATCH /api/records/:id`, `DELETE /api/records/:id` |
+| Dashboard | `GET /api/dashboard/summary`, `GET /api/dashboard/by-category`, `GET /api/dashboard/monthly` |
+
+Base URL:
+
+```text
 http://localhost:3000
+```
 
 ### Health
 
-GET /health
+#### `GET /health`
+
+Public health check.
 
 Response:
 
@@ -203,9 +261,9 @@ Response:
 
 ### Auth
 
-#### POST /api/auth/register
+#### `POST /api/auth/register`
 
-Creates a new user (default role: VIEWER) and returns JWT.
+Creates a new `VIEWER` user and returns a token.
 
 Request:
 
@@ -217,7 +275,7 @@ Request:
 }
 ```
 
-Response 201:
+Response `201`:
 
 ```json
 {
@@ -227,34 +285,50 @@ Response 201:
     "name": "Alice",
     "email": "alice@example.com",
     "role": "VIEWER",
-    "createdAt": "2026-04-02T12:00:00.000Z",
-    "updatedAt": "2026-04-02T12:00:00.000Z"
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
   }
 }
 ```
 
-#### POST /api/auth/login
+#### `POST /api/auth/login`
 
-Validates credentials and returns JWT.
+Authenticates an existing user and returns the same response shape as register.
 
 Request:
 
 ```json
 {
-  "email": "alice@example.com",
-  "password": "Password123!"
+  "email": "admin@vaultex.dev",
+  "password": "Admin@123"
 }
 ```
 
-Response 200: same shape as register.
+Response `200`:
 
-### Users (ADMIN only)
+```json
+{
+  "token": "jwt-token",
+  "user": {
+    "id": "uuid",
+    "name": "Admin User",
+    "email": "admin@vaultex.dev",
+    "role": "ADMIN",
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
 
-#### GET /api/users
+### Users
+
+All user routes require `ADMIN`.
+
+#### `GET /api/users`
 
 Lists all users.
 
-Response 200:
+Response `200`:
 
 ```json
 {
@@ -262,22 +336,37 @@ Response 200:
     {
       "id": "uuid",
       "name": "Admin User",
-      "email": "admin@vaultex.local",
+      "email": "admin@vaultex.dev",
       "role": "ADMIN",
-      "createdAt": "2026-04-02T12:00:00.000Z",
-      "updatedAt": "2026-04-02T12:00:00.000Z"
+      "createdAt": "2026-04-06T12:00:00.000Z",
+      "updatedAt": "2026-04-06T12:00:00.000Z"
     }
   ]
 }
 ```
 
-#### GET /api/users/:id
+#### `GET /api/users/:id`
 
-Returns one user by id.
+Returns a single user by id.
 
-#### PATCH /api/users/:id/role
+Response `200`:
 
-Changes a user role.
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "Analyst User",
+    "email": "analyst@vaultex.dev",
+    "role": "ANALYST",
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
+
+#### `PATCH /api/users/:id/role`
+
+Updates a user role.
 
 Request:
 
@@ -287,11 +376,28 @@ Request:
 }
 ```
 
-### Financial Records
+Response `200`:
 
-#### POST /api/records (ADMIN only)
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "Viewer User",
+    "email": "viewer@vaultex.dev",
+    "role": "ANALYST",
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
 
-Creates a financial record for any user.
+### Records
+
+All record routes require authentication.
+
+#### `POST /api/records`
+
+Admin-only create endpoint.
 
 Request:
 
@@ -301,12 +407,12 @@ Request:
   "amount": 2500,
   "type": "INCOME",
   "category": "Salary",
-  "date": "2024-01-01",
-  "notes": "January payroll"
+  "date": "2026-04-01",
+  "notes": "April payroll"
 }
 ```
 
-Response 201:
+Response `201`:
 
 ```json
 {
@@ -316,52 +422,83 @@ Response 201:
     "amount": 2500,
     "type": "INCOME",
     "category": "Salary",
-    "date": "2024-01-01T00:00:00.000Z",
-    "notes": "January payroll",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "April payroll",
     "isDeleted": false,
-    "createdAt": "2026-04-02T12:00:00.000Z",
-    "updatedAt": "2026-04-02T12:00:00.000Z"
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
   }
 }
 ```
 
-#### GET /api/records
+#### `GET /api/records`
 
-- VIEWER: only own records
-- ANALYST and ADMIN: all records
+Returns paginated records.
 
-Supported query params:
+Query parameters:
 
-- type=INCOME|EXPENSE
-- category=Salary
-- startDate=2024-01-01
-- endDate=2024-12-31
-- page=1
-- limit=20
+- `type=INCOME|EXPENSE`
+- `category=Salary`
+- `startDate=2026-01-01`
+- `endDate=2026-12-31`
+- `page=1`
+- `limit=20`
 
-Response 200:
+Response `200`:
 
 ```json
 {
-  "data": [],
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "amount": 1200,
+      "type": "EXPENSE",
+      "category": "Rent",
+      "date": "2026-04-01T00:00:00.000Z",
+      "notes": "April rent",
+      "isDeleted": false,
+      "createdAt": "2026-04-06T12:00:00.000Z",
+      "updatedAt": "2026-04-06T12:00:00.000Z"
+    }
+  ],
   "meta": {
     "page": 1,
     "limit": 20,
-    "total": 0,
-    "totalPages": 1
+    "total": 40,
+    "totalPages": 2
   }
 }
 ```
 
-#### GET /api/records/:id
+#### `GET /api/records/:id`
 
-Gets a single record if caller is allowed to view it.
+Returns a single record if the authenticated user is allowed to view it.
 
-#### PATCH /api/records/:id (ADMIN only)
+Response `200`:
 
-Updates one record. Partial updates are allowed.
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "amount": 145.5,
+    "type": "EXPENSE",
+    "category": "Transport",
+    "date": "2026-03-15T00:00:00.000Z",
+    "notes": null,
+    "isDeleted": false,
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
 
-Example request:
+#### `PATCH /api/records/:id`
+
+Admin-only partial update endpoint.
+
+Request:
 
 ```json
 {
@@ -370,19 +507,57 @@ Example request:
 }
 ```
 
-#### DELETE /api/records/:id (ADMIN only)
+Response `200`:
 
-Soft deletes the record by setting isDeleted=true.
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "amount": 2750,
+    "type": "INCOME",
+    "category": "Salary",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "Adjusted amount",
+    "isDeleted": false,
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
 
-### Dashboard / Analytics
+#### `DELETE /api/records/:id`
 
-#### GET /api/dashboard/summary
+Admin-only soft delete. The record is retained and marked deleted.
 
-Returns totalIncome, totalExpenses, and netBalance.
+Response `200`:
 
-VIEWER gets own data only. ANALYST and ADMIN get system-wide data.
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "amount": 1200,
+    "type": "EXPENSE",
+    "category": "Rent",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "April rent",
+    "isDeleted": true,
+    "createdAt": "2026-04-06T12:00:00.000Z",
+    "updatedAt": "2026-04-06T12:00:00.000Z"
+  }
+}
+```
 
-Response 200:
+### Dashboard
+
+All dashboard routes require authentication.
+
+#### `GET /api/dashboard/summary`
+
+Returns total income, total expenses, and net balance.
+
+Response `200`:
 
 ```json
 {
@@ -394,9 +569,121 @@ Response 200:
 }
 ```
 
-#### GET /api/dashboard/by-category
+#### `GET /api/dashboard/by-category`
 
-Returns category-level aggregation.
+Returns category-level totals.
+
+Response `200`:
+
+```json
+{
+  "data": [
+    {
+      "category": "Salary",
+      "income": 5000,
+      "expense": 0,
+      "total": 5000
+    }
+  ]
+}
+```
+
+#### `GET /api/dashboard/monthly`
+
+Returns monthly trend data.
+
+Response `200`:
+
+```json
+{
+  "data": [
+    {
+      "month": "2026-04",
+      "income": 5000,
+      "expense": 1200,
+      "total": 3800
+    }
+  ]
+}
+```
+
+## Postman Collection
+
+The repository includes an importable Postman collection at [postman/VaulTex.postman_collection.json](postman/VaulTex.postman_collection.json).
+
+Collection variables:
+
+- `baseUrl` - defaults to `http://localhost:3000`
+- `token` - populated after register or login
+- `userId` - populated after register or login
+- `recordId` - populated after creating a record
+- `seedAdminEmail` - defaults to `admin@vaultex.local`
+- `seedAdminPassword` - defaults to `Password123!`
+
+Collection folders:
+
+- Health
+- Auth
+- Users (Admin)
+- Records
+- Dashboard
+
+The collection is configured to:
+
+- log in with seeded admin credentials
+- store the JWT in `{{token}}`
+- reuse `{{token}}` for protected requests
+- capture `userId` and `recordId` for chained requests
+
+## Swagger / OpenAPI Note
+
+This repository does not currently ship a generated Swagger UI route.
+If you want an OpenAPI document later, the current endpoint structure is already organized so it can be exported cleanly from the route list above.
+
+## Data Model
+
+### User
+
+- `id` - UUID primary key
+- `name` - display name
+- `email` - unique email address
+- `password` - bcrypt hash stored only in the database
+- `role` - `VIEWER`, `ANALYST`, or `ADMIN`
+- `createdAt`, `updatedAt`
+
+### FinancialRecord
+
+- `id` - UUID primary key
+- `userId` - owner of the record
+- `amount` - positive numeric amount
+- `type` - `INCOME` or `EXPENSE`
+- `category` - category label
+- `date` - ISO date string
+- `notes` - optional notes
+- `isDeleted` - soft delete flag
+- `createdAt`, `updatedAt`
+
+## Testing
+
+The backend test suite uses SQLite and runs with Vitest + Supertest.
+
+```powershell
+npm test
+```
+
+For local integration tests, the workspace note is to use a dedicated test database and keep Vitest file parallelism disabled for SQLite stability.
+
+## Notes
+
+- The backend listens on port `3000` by default.
+- The frontend listens on port `3001` by default.
+- The frontend stores auth state in both Zustand and localStorage using `vaultex_token` and `vaultex_user`.
+- Authenticated users are redirected to `/dashboard`.
+- Admin-only create/delete flows are enforced by the backend, not the client UI.
+
+## License
+
+No license has been specified for this repository.
 
 Response example:
 

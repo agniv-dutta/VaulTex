@@ -8,7 +8,11 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const tokenFromStore = useAuthStore.getState().token;
+  const tokenFromStorage =
+    typeof window !== "undefined" ? localStorage.getItem("vaultex_token") : null;
+  const token = tokenFromStore ?? tokenFromStorage;
+
   if (token) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
@@ -23,6 +27,8 @@ api.interceptors.response.use(
     if (status === 401) {
       useAuthStore.getState().clearAuth();
       if (typeof window !== "undefined") {
+        localStorage.removeItem("vaultex_token");
+        localStorage.removeItem("vaultex_user");
         window.location.href = "/login";
       }
     }

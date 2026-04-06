@@ -13,9 +13,11 @@ export function RecordRow({
   onDelete: (id: string) => void;
 }) {
   const amountTone = record.type === "INCOME" ? "text-mint" : "text-danger";
+  const formattedDate = new Date(record.date).toLocaleDateString();
+
   return (
     <Tr className="group/row">
-      <Td hoverAccent>{record.date.slice(0, 10)}</Td>
+      <Td hoverAccent>{formattedDate}</Td>
       <Td hoverAccent>{record.type}</Td>
       <Td hoverAccent>{record.category}</Td>
       <Td hoverAccent className={`font-data drop-shadow-[0_0_8px_#FFD70066] ${amountTone}`}>

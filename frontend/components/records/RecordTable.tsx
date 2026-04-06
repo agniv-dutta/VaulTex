@@ -11,6 +11,29 @@ export function RecordTable({
   records: FinancialRecord[];
   onDelete: (id: string) => void;
 }) {
+  if (records.length === 0) {
+    return (
+      <Table
+        header={
+          <tr>
+            <Th>Date</Th>
+            <Th>Type</Th>
+            <Th>Category</Th>
+            <Th>Amount</Th>
+            <Th>Notes</Th>
+            <Th className="text-right">Actions</Th>
+          </tr>
+        }
+      >
+        <tr>
+          <td colSpan={6} className="px-3 py-8 text-center text-[#5A5A7A]">
+            No records found
+          </td>
+        </tr>
+      </Table>
+    );
+  }
+
   return (
     <Table
       header={

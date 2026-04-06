@@ -12,9 +12,13 @@ export function useDashboardSummary() {
   return useQuery({
     queryKey: ["dashboard", "summary"],
     queryFn: async () => {
-      const res = await api.get<{ data: DashboardSummary }>("/api/dashboard/summary");
-      return res.data.data;
+      const res = await api.get<DashboardSummary | { data: DashboardSummary }>(
+        "/api/dashboard/summary"
+      );
+      const payload = res.data;
+      return "data" in payload ? payload.data : payload;
     },
+    refetchOnMount: true,
   });
 }
 
@@ -22,11 +26,13 @@ export function useDashboardByCategory() {
   return useQuery({
     queryKey: ["dashboard", "by-category"],
     queryFn: async () => {
-      const res = await api.get<{ data: CategoryBreakdownItem[] }>(
+      const res = await api.get<CategoryBreakdownItem[] | { data: CategoryBreakdownItem[] }>(
         "/api/dashboard/by-category"
       );
-      return res.data.data;
+      const payload = res.data;
+      return "data" in payload ? payload.data : payload;
     },
+    refetchOnMount: true,
   });
 }
 
@@ -34,11 +40,13 @@ export function useDashboardMonthly() {
   return useQuery({
     queryKey: ["dashboard", "monthly"],
     queryFn: async () => {
-      const res = await api.get<{ data: MonthlyBreakdownItem[] }>(
+      const res = await api.get<MonthlyBreakdownItem[] | { data: MonthlyBreakdownItem[] }>(
         "/api/dashboard/monthly"
       );
-      return res.data.data;
+      const payload = res.data;
+      return "data" in payload ? payload.data : payload;
     },
+    refetchOnMount: true,
   });
 }
 

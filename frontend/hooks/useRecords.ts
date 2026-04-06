@@ -17,7 +17,7 @@ export function useRecords(filters: RecordsFilters) {
   return useQuery({
     queryKey: ["records", "list", filters],
     queryFn: async () => {
-      const res = await api.get<RecordsListResult>("/api/records", {
+      const res = await api.get<RecordsListResult | { data: RecordsListResult }>("/api/records", {
         params: {
           type: filters.type,
           category: filters.category,
@@ -27,8 +27,10 @@ export function useRecords(filters: RecordsFilters) {
           limit: filters.limit,
         },
       });
-      return res.data;
+      const payload = res.data as RecordsListResult | { data: RecordsListResult };
+      return "data" in payload && "meta" in payload.data ? payload.data : (payload as RecordsListResult);
     },
+    refetchOnMount: true,
   });
 }
 
