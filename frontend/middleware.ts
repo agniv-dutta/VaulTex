@@ -6,6 +6,10 @@ const PUBLIC_PATHS = ["/login", "/register"];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
