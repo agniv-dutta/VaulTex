@@ -10,6 +10,7 @@ export function LCDNumber({
   className,
   tone = "accent",
   decimals = 2,
+  locale = "en-US",
 }: {
   value: number;
   prefix?: string;
@@ -17,12 +18,18 @@ export function LCDNumber({
   className?: string;
   tone?: "accent" | "mint" | "danger";
   decimals?: number;
+  locale?: string;
 }) {
   const tones: Record<NonNullable<typeof tone>, string> = {
     accent: "text-accent shadow-glow-gold",
     mint: "text-mint shadow-glow-mint",
     danger: "text-danger shadow-[0_0_10px_#FF2D5566]",
   };
+
+  const numberFormatter = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 
   return (
     <div
@@ -36,9 +43,9 @@ export function LCDNumber({
         end={value}
         duration={0.9}
         decimals={decimals}
-        separator=","
-        prefix={prefix}
-        suffix={suffix}
+        formattingFn={(nextValue) =>
+          `${prefix ?? ""}${numberFormatter.format(nextValue)}${suffix ?? ""}`
+        }
       />
     </div>
   );

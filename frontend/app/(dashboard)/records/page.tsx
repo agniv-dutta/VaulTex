@@ -1,18 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { RecordFilters, type RecordFiltersValue } from "@/components/records/RecordFilters";
 import { RecordTable } from "@/components/records/RecordTable";
 import { useDeleteRecord, useRecords } from "@/hooks/useRecords";
 import { useAuthStore } from "@/store/authStore";
 import { RequireRole } from "@/components/auth/RequireRole";
+import { DEMO_RECORDS } from "@/lib/demoData";
 
 export default function RecordsPage() {
   const router = useRouter();
   const role = useAuthStore((s) => s.role);
+  const [demoRecords, setDemoRecords] = useState(DEMO_RECORDS);
+  const [demoMode, setDemoMode] = useState(false);
 
   const [filters, setFilters] = useState<RecordFiltersValue>({
     type: undefined,
@@ -34,22 +38,60 @@ export default function RecordsPage() {
 
   const del = useDeleteRecord();
 
+  const shouldEnableDemoData =
+    !recordsQuery.isLoading &&
+    (recordsQuery.error ||
+      (!filters.type &&
+        !filters.category &&
+        !filters.startDate &&
+        !filters.endDate &&
+        !filters.search &&
+        (recordsQuery.data?.data.length ?? 0) === 0));
+
+  useEffect(() => {
+    if (shouldEnableDemoData && !demoMode) {
+      setDemoMode(true);
+    }
+  }, [demoMode, shouldEnableDemoData]);
+
+  const useDemoData = demoMode || shouldEnableDemoData;
+
+  const activeRecords = useDemoData ? demoRecords : recordsQuery.data?.data ?? [];
+
   const categories = useMemo(() => {
     const set = new Set<string>();
-    (recordsQuery.data?.data ?? []).forEach((r) => set.add(r.category));
+    activeRecords.forEach((r) => set.add(r.category));
     return [...set.values()].sort((a, b) => a.localeCompare(b));
-  }, [recordsQuery.data?.data]);
+  }, [activeRecords]);
 
   const filteredClient = useMemo(() => {
     const term = (filters.search ?? "").trim().toLowerCase();
-    if (!term) return recordsQuery.data?.data ?? [];
-    return (recordsQuery.data?.data ?? []).filter((r) => {
+    if (!term) return activeRecords;
+    return activeRecords.filter((r) => {
       return (
         r.category.toLowerCase().includes(term) ||
         (r.notes ?? "").toLowerCase().includes(term)
       );
     });
-  }, [recordsQuery.data?.data, filters.search]);
+  }, [activeRecords, filters.search]);
+
+  const totalPages = useMemo(() => {
+    if (!useDemoData) return recordsQuery.data?.meta.totalPages ?? 1;
+    return Math.max(1, Math.ceil(filteredClient.length / 20));
+  }, [filteredClient.length, recordsQuery.data?.meta.totalPages, useDemoData]);
+
+  const displayRecords = useMemo(() => {
+    if (!useDemoData) return filteredClient;
+
+    const start = (page - 1) * 20;
+    return filteredClient.slice(start, start + 20);
+  }, [filteredClient, page, useDemoData]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
     <div className="space-y-4">
@@ -60,6 +102,8 @@ export default function RecordsPage() {
           </div>
           <div className="text-[12px] text-[#5A5A7A]">/api/records</div>
         </div>
+
+        {useDemoData ? <Badge tone="border">DEMO DATA</Badge> : null}
 
         <RequireRole role="ADMIN">
           <Button onClick={() => router.push("/records/new")}>NEW ENTRY</Button>
@@ -78,12 +122,42 @@ export default function RecordsPage() {
       <Card className="p-4">
         {recordsQuery.isLoading ? (
           <div className="text-[#5A5A7A]">LOADING...</div>
+        ) : useDemoData ? (
+          <>
+            <RecordTable
+              records={displayRecords}
+              onDelete={(id) => {
+                setDemoRecords((current) => current.filter((record) => record.id !== id));
+              }}
+            />
+            <div className="mt-4 flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                PREV
+              </Button>
+              <div className="text-[12px] text-[#5A5A7A] font-mono">
+                PAGE {page} / {totalPages}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                NEXT
+              </Button>
+            </div>
+          </>
         ) : recordsQuery.error ? (
           <div className="text-danger">FAILED TO LOAD RECORDS.</div>
         ) : (
           <>
             <RecordTable
-              records={filteredClient}
+              records={displayRecords}
               onDelete={(id) => {
                 if (role !== "ADMIN") return;
                 del.mutate(id);
@@ -99,17 +173,12 @@ export default function RecordsPage() {
                 PREV
               </Button>
               <div className="text-[12px] text-[#5A5A7A] font-mono">
-                PAGE {recordsQuery.data?.meta.page ?? page} /{" "}
-                {recordsQuery.data?.meta.totalPages ?? 1}
+                PAGE {recordsQuery.data?.meta.page ?? page} / {recordsQuery.data?.meta.totalPages ?? 1}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() =>
-                  setPage((p) =>
-                    Math.min(recordsQuery.data?.meta.totalPages ?? p + 1, p + 1)
-                  )
-                }
+                onClick={() => setPage((p) => Math.min(recordsQuery.data?.meta.totalPages ?? 1, p + 1))}
                 disabled={page >= (recordsQuery.data?.meta.totalPages ?? 1)}
               >
                 NEXT

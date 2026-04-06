@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { formatCurrencyINR } from "@/lib/currency";
 
 export function ChartTooltip({
   active,
@@ -31,7 +32,7 @@ export function ChartTooltip({
               {(p.name || "VALUE").toString().toUpperCase()}
             </span>
             <span className="ml-auto font-data text-accent drop-shadow-[0_0_8px_#FFD70066]">
-              {typeof p.value === "number" ? p.value.toLocaleString() : "-"}
+              {typeof p.value === "number" ? formatCurrencyINR(p.value) : "-"}
             </span>
           </div>
         ))}

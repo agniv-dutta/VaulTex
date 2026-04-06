@@ -4,6 +4,7 @@ import { Trash2, Pencil } from "lucide-react";
 import type { FinancialRecord } from "@/types";
 import { Td, Tr } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
+import { formatCurrencyINR } from "@/lib/currency";
 
 export function RecordRow({
   record,
@@ -21,7 +22,7 @@ export function RecordRow({
       <Td hoverAccent>{record.type}</Td>
       <Td hoverAccent>{record.category}</Td>
       <Td hoverAccent className={`font-data drop-shadow-[0_0_8px_#FFD70066] ${amountTone}`}>
-        ${record.amount.toLocaleString()}
+        {formatCurrencyINR(record.amount)}
       </Td>
       <Td hoverAccent className="text-[#5A5A7A]">
         {record.notes || "—"}
