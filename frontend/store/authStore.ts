@@ -19,11 +19,11 @@ function setTokenCookie(token: string | null) {
   if (typeof document === "undefined") return;
   if (!token) {
     document.cookie =
-      "finledger_token=; Path=/; Max-Age=0; SameSite=Lax; Secure=";
+      "vaultex_token=; Path=/; Max-Age=0; SameSite=Lax; Secure=";
     return;
   }
   // Secure= will be ignored on http://localhost which is fine.
-  document.cookie = `finledger_token=${encodeURIComponent(
+  document.cookie = `vaultex_token=${encodeURIComponent(
     token
   )}; Path=/; SameSite=Lax; Secure=`;
 }
@@ -49,7 +49,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
     }),
     {
-      name: "finledger_auth",
+      name: "vaultex_auth",
       partialize: (s) => ({ token: s.token, user: s.user, role: s.role }),
       onRehydrateStorage: () => (state) => {
         state?.markHydrated();

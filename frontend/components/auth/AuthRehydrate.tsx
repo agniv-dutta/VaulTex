@@ -10,7 +10,7 @@ export function AuthRehydrate() {
   useEffect(() => {
     if (!isHydrated) return;
     if (!token) return;
-    document.cookie = `finledger_token=${encodeURIComponent(
+    document.cookie = `vaultex_token=${encodeURIComponent(
       token
     )}; Path=/; SameSite=Lax; Secure=`;
   }, [token, isHydrated]);

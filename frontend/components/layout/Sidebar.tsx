@@ -35,7 +35,7 @@ export function Sidebar() {
     <aside className="w-[260px] shrink-0 border-r-2 border-border bg-[#0C0C13] p-4">
       <div className="mb-6">
         <div className="font-display text-[18px] tracking-[0.18em] uppercase text-accent drop-shadow-[0_0_8px_#FFD70066]">
-          FINLEDGER
+          VAULTEX
         </div>
         <div className="mt-2 border-t border-dashed border-[#2A2AFF33]" />
       </div>

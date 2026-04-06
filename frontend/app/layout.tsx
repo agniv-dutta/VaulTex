@@ -22,7 +22,7 @@ const dataFont = Share_Tech_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FinLedger",
+  title: "Vaultex",
   description: "Personal finance dashboard (Y2K retro-tech UI).",
 };
 

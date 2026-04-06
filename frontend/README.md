@@ -1,10 +1,10 @@
-# FinLedger Frontend (Next.js 14)
+# Vaultex Frontend (Next.js 14)
 
-Y2K retro-tech personal finance dashboard UI that connects to the existing VaulTex / FinLedger Express REST API.
+Y2K retro-tech personal finance dashboard UI that connects to the existing VaulTex / Vaultex Express REST API.
 
 ## Pages (what you’ll see)
 
-- **`/login`**: Full-screen access terminal card, Orbitron header **“FINLEDGER // ACCESS TERMINAL”**, CRT scanlines overlay.
+- **`/login`**: Full-screen access terminal card, Orbitron header **“VAULTEX // ACCESS TERMINAL”**, CRT scanlines overlay.
 - **`/register`**: Same terminal aesthetic, new account creation.
 - **`/dashboard`**:
   - 3 LCD stat cards with CountUp: **TOTAL INCOME** (mint), **TOTAL EXPENSES** (danger), **NET BALANCE** (gold/danger swap).
@@ -55,7 +55,7 @@ Then open `http://localhost:3001` (or whatever port Next picks).
 
 ## API dependency
 
-This frontend requires the FinLedger/VaulTex backend running locally (default `http://localhost:3000`), and calls:
+This frontend requires the Vaultex/VaulTex backend running locally (default `http://localhost:3000`), and calls:
 
 - `POST /api/auth/login`
 - `POST /api/auth/register`

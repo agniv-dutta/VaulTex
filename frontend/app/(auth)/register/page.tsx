@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,21 @@ export default function RegisterPage() {
   const router = useRouter();
   const registerMutation = useRegister();
 
+  const registerErrorMessage = (() => {
+    if (!registerMutation.error) {
+      return null;
+    }
+
+    if (isAxiosError<{ message?: string }>(registerMutation.error)) {
+      const backendMessage = registerMutation.error.response?.data?.message;
+      if (backendMessage) {
+        return backendMessage;
+      }
+    }
+
+    return "Registration failed. Please verify your input and try again.";
+  })();
+
   const {
     register,
     handleSubmit,
@@ -31,7 +47,7 @@ export default function RegisterPage() {
     <div className="min-h-full flex items-center justify-center px-4 py-12 bg-bg">
       <Card className="w-full max-w-[520px] p-6">
         <div className="font-display text-[28px] tracking-[0.15em] uppercase text-accent drop-shadow-[0_0_8px_#FFD70066]">
-          FINLEDGER // NEW ACCOUNT
+          VAULTEX // NEW ACCOUNT
         </div>
         <div className="mt-4 border-t border-dashed border-[#2A2AFF33]" />
 
@@ -56,7 +72,7 @@ export default function RegisterPage() {
             <div className="text-[12px] uppercase tracking-[0.12em] text-[#5A5A7A]">
               EMAIL
             </div>
-            <Input placeholder="user@finledger.local" {...register("email")} />
+            <Input placeholder="user@vaultex.local" {...register("email")} />
             {errors.email ? (
               <div className="mt-1 text-[12px] text-danger">{errors.email.message}</div>
             ) : null}
@@ -74,9 +90,9 @@ export default function RegisterPage() {
             ) : null}
           </div>
 
-          {registerMutation.error ? (
-            <div className="text-[12px] text-danger">
-              REGISTRATION FAILED. CHECK INPUT / EMAIL.
+          {registerErrorMessage ? (
+            <div className="text-[12px] text-danger uppercase tracking-[0.06em]">
+              {registerErrorMessage}
             </div>
           ) : null}
 

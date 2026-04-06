@@ -14,7 +14,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get("finledger_token")?.value;
+  const token = req.cookies.get("vaultex_token")?.value;
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!token && !isPublic) {
